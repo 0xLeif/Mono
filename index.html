@@ -1,471 +1,688 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mono: A Minimalist App Launcher</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F8F7F2; /* Warm paper white */
-            color: #212121;
+        :root {
+            --hue: 180;
+            --bg-color: hsl(var(--hue), 5%, 8%);
+            --card-bg: hsl(var(--hue), 8%, 12%);
+            --text-color: hsl(var(--hue), 20%, 85%);
+            --accent-color: hsl(var(--hue), 80%, 55%);
+            --accent-dim: hsl(var(--hue), 60%, 35%);
+            --border-color: hsl(var(--hue), 20%, 30%);
+            --muted-color: hsl(var(--hue), 10%, 50%);
         }
-        .font-mono-plex {
-            font-family: 'IBM Plex Mono', monospace;
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            line-height: 1.8;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 0;
+            margin: 0;
         }
-        .e-ink-card {
-            background-color: #FFFFFF;
-            border: 1px solid #E0E0E0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+        a { color: var(--accent-color); }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 16px;
         }
-        .e-ink-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+
+        /* Tint Selector */
+        .tint-selector {
+            display: flex;
+            gap: 6px;
+            align-items: center;
         }
-        .nav-link {
+
+        .tint-btn {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .tint-btn:hover { transform: scale(1.2); }
+        .tint-btn.active { border-color: white; }
+
+        .tint-btn[data-hue="180"] { background: hsl(180, 80%, 55%); }
+        .tint-btn[data-hue="270"] { background: hsl(270, 80%, 55%); }
+        .tint-btn[data-hue="120"] { background: hsl(120, 80%, 55%); }
+        .tint-btn[data-hue="30"] { background: hsl(30, 80%, 55%); }
+        .tint-btn[data-hue="0"] { background: hsl(0, 80%, 55%); }
+        .tint-btn[data-hue="60"] { background: hsl(60, 80%, 55%); }
+
+        /* Header */
+        header {
+            background: var(--card-bg);
+            border-bottom: 4px solid var(--border-color);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+        }
+
+        .logo h1 { font-size: 16px; margin: 0; }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            font-size: 9px;
+            text-decoration: none;
+            padding: 10px 16px;
+            background: var(--card-bg);
+            border: 3px solid var(--border-color);
+            color: var(--text-color);
+            transition: all 0.1s;
+        }
+
+        nav a:hover, nav a.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 64px 16px 48px;
+            margin-top: 32px;
+        }
+
+        .hero h2 {
+            font-size: 18px;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .hero h2 .accent { color: var(--accent-color); }
+
+        .hero p {
+            max-width: 600px;
+            margin: 0 auto 32px;
+            font-size: 10px;
+        }
+
+        /* Sections */
+        section { padding: 48px 0; }
+
+        section h3 {
+            font-size: 14px;
+            margin-top: 56px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        /* NES.css dark overrides */
+        .nes-container {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            display: inline-block;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            padding: 14px 24px;
+            background: var(--accent-color);
+            color: var(--bg-color);
+            border: 4px solid var(--accent-color);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--accent-color);
+        }
+
+        /* What's New */
+        .whats-new {
+            background: var(--card-bg);
+            border: 4px solid var(--accent-color);
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .whats-new h4 {
+            font-size: 12px;
+            margin: 0 0 16px 0;
+            color: var(--accent-color);
+        }
+
+        .whats-new ul {
+            margin: 0;
+            padding-left: 24px;
+            font-size: 10px;
+        }
+
+        .whats-new li { margin-bottom: 8px; }
+
+        /* Design Cards */
+        .design-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .design-card {
+            padding: 16px;
+            text-align: center;
+        }
+
+        .design-card h4 { font-size: 11px; margin-bottom: 8px; }
+        .design-card p { font-size: 9px; margin: 0; }
+
+        /* Applets Grid */
+        .applets-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .applet-card {
+            padding: 14px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.1s;
             position: relative;
-            transition: color 0.2s ease;
-        }
-        .nav-link:hover {
-            color: #4A90E2; /* Accent Color */
-        }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 1px;
-            bottom: -2px;
-            left: 50%;
-            background-color: #4A90E2;
-            transition: all 0.3s ease-in-out;
-        }
-        .nav-link:hover::after {
-            width: 100%;
-            left: 0;
-        }
-        .active-section {
-            color: #4A90E2;
-            font-weight: 600;
-        }
-        .page-content {
-            display: none;
-        }
-        .page-content.active {
-            display: block;
-        }
-        .prose {
-            max-width: 65ch;
-        }
-        .prose h1, .prose h2, .prose h3 {
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        .prose h3 {
-            margin-top: 2em;
-            margin-bottom: 1em;
-        }
-        .details-content {
-            max-height: 0;
             overflow: hidden;
-            transition: max-height 0.5s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 110px;
         }
-        .details-content.expanded {
-            max-height: 500px; /* Adjust as needed for content */
+
+        .applet-card:hover { transform: scale(1.02); }
+
+        .applet-card.is-primary {
+            background: var(--accent-color);
+            color: var(--bg-color);
+        }
+
+        .applet-card.selected {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px var(--accent-color);
+        }
+
+        .applet-icon { font-size: 24px; margin-bottom: 8px; }
+
+        .applet-card h4 {
+            font-size: 8px;
+            margin: 0 0 4px 0;
+            line-height: 1.4;
+        }
+
+        .applet-card p {
+            font-size: 7px;
+            margin: 0;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+
+        /* Applet Details Tooltip */
+        .applet-tooltip {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+            width: 280px;
+            padding: 16px;
+            background: var(--card-bg);
+            border: 4px solid var(--accent-color);
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.3);
+        }
+
+        .applet-tooltip.active { display: block; }
+
+        .applet-tooltip h4 {
+            font-size: 11px;
+            margin: 0 0 12px 0;
+            color: var(--accent-color);
+        }
+
+        .applet-tooltip p {
+            font-size: 9px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .applet-tooltip .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--muted-color);
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+        }
+
+        .applet-tooltip .close-btn:hover { color: var(--accent-color); }
+
+        /* Roadmap */
+        .roadmap-item {
+            margin-bottom: 24px;
+            padding: 24px;
+        }
+
+        .roadmap-item h4 { font-size: 11px; margin-bottom: 12px; }
+        .roadmap-item p { font-size: 9px; margin: 0; }
+        .roadmap-item .price { margin-top: 12px; color: var(--accent-color); font-size: 10px; }
+
+        /* Footer */
+        footer {
+            background: var(--card-bg);
+            border-top: 4px solid var(--border-color);
+            padding: 48px 16px;
+            text-align: center;
+        }
+
+        footer h3 { font-size: 12px; margin-bottom: 16px; }
+        footer p { font-size: 9px; max-width: 500px; margin: 0 auto 24px; }
+
+        footer .links { margin-top: 32px; font-size: 9px; }
+        footer .links a { margin: 0 12px; color: var(--muted-color); }
+        footer .links a:hover { color: var(--accent-color); }
+        footer .copyright { margin-top: 24px; font-size: 8px; opacity: 0.6; }
+
+        /* Privacy/Terms Pages */
+        .page-content { display: none; padding: 48px 16px; }
+        .page-content.active { display: block; }
+        .page-content h2 { font-size: 14px; margin-bottom: 24px; }
+        .page-content h4 { font-size: 11px; margin: 24px 0 12px; }
+        .page-content p, .page-content li { font-size: 10px; margin-bottom: 12px; }
+        .page-content ul { padding-left: 24px; }
+        .back-link { margin-bottom: 24px; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            html, body { font-size: 10px; }
+
+            header .container { flex-direction: column; gap: 12px; }
+
+            .header-right { flex-direction: column; gap: 12px; width: 100%; }
+
+            .tint-selector { justify-content: center; }
+
+            nav { justify-content: center; width: 100%; }
+            nav a { font-size: 8px; padding: 8px 10px; }
+
+            .hero { padding: 40px 16px 32px; margin-top: 16px; }
+            .hero h2 { font-size: 12px; }
+            .hero p { font-size: 9px; }
+
+            section { padding: 32px 0; }
+            section h3 { font-size: 11px; margin-top: 32px; margin-bottom: 24px; }
+
+            .design-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .design-card h4 { font-size: 9px; }
+            .design-card p { font-size: 8px; }
+
+            .applets-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+            .applet-card { padding: 12px 8px; min-height: 100px; }
+            .applet-icon { font-size: 20px; }
+            .applet-card h4 { font-size: 7px; }
+            .applet-card p { font-size: 6px; }
+
+            .applet-tooltip { width: 220px; padding: 12px; }
+
+            .roadmap-item { padding: 16px; }
+            .roadmap-item h4 { font-size: 9px; }
+            .roadmap-item p { font-size: 8px; }
+
+            .whats-new { padding: 16px; }
+            .whats-new h4 { font-size: 10px; }
+            .whats-new li { font-size: 8px; }
+
+            .btn-primary { font-size: 8px; padding: 12px 16px; }
+
+            footer h3 { font-size: 10px; }
+            footer p { font-size: 8px; }
+        }
+
+        @media (max-width: 400px) {
+            .applets-grid { grid-template-columns: repeat(2, 1fr); }
+            .design-grid { grid-template-columns: 1fr; }
+            nav a { font-size: 7px; padding: 6px 8px; }
         }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <header id="header" class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-sm z-50 border-b border-gray-200/50">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <a href="#home" id="logo-link" class="flex items-center space-x-3 cursor-pointer">
-                    <div class="w-8 h-8 rounded-md overflow-hidden">
-                        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="32" height="32" fill="#111827"/>
-                            <rect x="5" y="5" width="6" height="6" fill="white"/>
-                            <rect x="13" y="5" width="6" height="6" fill="white"/>
-                            <rect x="21" y="5" width="6" height="6" fill="white"/>
-                            <rect x="5" y="13" width="6" height="6" fill="white"/>
-                            <rect x="13" y="13" width="6" height="6" fill="white"/>
-                            <rect x="21" y="13" width="6" height="6" fill="white"/>
-                            <rect x="5" y="21" width="6" height="6" fill="white"/>
-                            <rect x="13" y="21" width="6" height="6" fill="white"/>
-                            <rect x="21" y="21" width="6" height="6" fill="white"/>
-                        </svg>
-                    </div>
-                    <h1 class="font-mono-plex text-xl font-semibold text-gray-800">Mono</h1>
-                </a>
-                <nav id="main-nav" class="hidden md:flex items-center space-x-8">
-                    <a href="#overview" class="nav-link text-gray-600 font-medium">Overview</a>
-                    <a href="#design" class="nav-link text-gray-600 font-medium">Design</a>
-                    <a href="#applets" class="nav-link text-gray-600 font-medium">Applets</a>
-                    <a href="#roadmap" class="nav-link text-gray-600 font-medium">Roadmap</a>
-                    <a href="#contact" class="nav-link text-gray-600 font-medium">Contact</a>
+    <header>
+        <div class="container">
+            <a href="#" class="logo" onclick="showPage('home'); return false;">
+                <svg class="logo-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="48" height="48" fill="var(--border-color)"/>
+                    <rect x="6" y="6" width="10" height="10" fill="var(--text-color)"/>
+                    <rect x="19" y="6" width="10" height="10" fill="var(--text-color)"/>
+                    <rect x="32" y="6" width="10" height="10" fill="var(--text-color)"/>
+                    <rect x="6" y="19" width="10" height="10" fill="var(--text-color)"/>
+                    <rect x="19" y="19" width="10" height="10" fill="var(--text-color)"/>
+                    <rect x="32" y="19" width="10" height="10" fill="var(--text-color)"/>
+                    <rect x="6" y="32" width="10" height="10" fill="var(--text-color)"/>
+                    <rect x="19" y="32" width="10" height="10" fill="var(--text-color)"/>
+                    <rect x="32" y="32" width="10" height="10" fill="var(--text-color)"/>
+                </svg>
+                <h1>Mono</h1>
+            </a>
+            <div class="header-right">
+                <div class="tint-selector">
+                    <button class="tint-btn active" data-hue="180" title="Cyan"></button>
+                    <button class="tint-btn" data-hue="120" title="Green"></button>
+                    <button class="tint-btn" data-hue="60" title="Yellow"></button>
+                    <button class="tint-btn" data-hue="30" title="Orange"></button>
+                    <button class="tint-btn" data-hue="0" title="Red"></button>
+                    <button class="tint-btn" data-hue="270" title="Purple"></button>
+                </div>
+                <nav>
+                    <a href="#overview" class="active">Overview</a>
+                    <a href="#applets">Applets</a>
+                    <a href="#roadmap">Roadmap</a>
                 </nav>
             </div>
         </div>
     </header>
 
-    <main class="pt-24 container mx-auto px-4">
-
+    <main>
         <div id="page-home" class="page-content active">
-            <section id="overview" class="text-center py-20 lg:py-28">
-                <h1 class="font-mono-plex text-4xl md:text-6xl font-bold leading-tight tracking-tight text-gray-900">A utility suite for<br><span class="text-[#4A90E2]">focused, distraction-free</span> workflows.</h1>
-                <p class="mt-6 max-w-3xl mx-auto text-lg md:text-xl text-gray-600">
-                    Mono is a minimalist, modular app launcher and utility suite for Apple devices, inspired by the focused aesthetic of E-Ink. Built in Swift with SwiftUI, Mono offers a quiet, clutter-free home screen and a curated set of tools that stay out of your way.
-                </p>
+
+            <section class="hero" id="overview">
+                <h2>A utility suite for<br><span class="accent">focused, distraction-free</span><br>workflows.</h2>
+                <p>Mono is a minimalist, modular app launcher for Apple devices, inspired by the focused aesthetic of E-Ink. Built in Swift with SwiftUI, Mono offers a quiet, clutter-free home screen and curated tools that stay out of your way.</p>
+                <a href="https://apps.apple.com/app/mono-app-launcher/id6738852984" class="btn-primary">Download on App Store</a>
             </section>
 
-            <section id="design" class="py-20">
-                <div class="text-center mb-16">
-                    <h2 class="font-mono-plex text-3xl font-bold text-gray-900">Design Philosophy</h2>
-                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">Mono is built on a foundation of clear design principles to ensure a consistent, high-quality, and calm experience.</p>
-                </div>
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-                    <div class="p-6 rounded-lg bg-white border text-center">
-                        <h4 class="font-mono-plex font-semibold text-lg mb-2">Minimalist</h4>
-                        <p class="text-gray-600">Monospaced UI with a pure black-and-white palette, using subtle grayscale only where necessary.</p>
-                    </div>
-                     <div class="p-6 rounded-lg bg-white border text-center">
-                        <h4 class="font-mono-plex font-semibold text-lg mb-2">Low-Stimulation</h4>
-                        <p class="text-gray-600">Little to no motion, color, or haptics to create a focused environment.</p>
-                    </div>
-                     <div class="p-6 rounded-lg bg-white border text-center">
-                        <h4 class="font-mono-plex font-semibold text-lg mb-2">Modular</h4>
-                        <p class="text-gray-600">Every feature lives in its own independent Swift Package for stability and maintainability.</p>
-                    </div>
-                     <div class="p-6 rounded-lg bg-white border text-center">
-                        <h4 class="font-mono-plex font-semibold text-lg mb-2">E-Ink Inspired</h4>
-                        <p class="text-gray-600">A high-contrast, low-motion interface designed for clarity and focus, reducing visual noise.</p>
-                    </div>
+            <section class="container">
+                <div class="nes-container whats-new">
+                    <h4>NEW IN v1.1.0</h4>
+                    <ul>
+                        <li><strong>Weather Applet</strong> - Real-time conditions from NWS with temp, humidity, wind, and UV index.</li>
+                        <li><strong>RSS Reader</strong> - Auto-fetch feeds, dedicated refresh button, cleaner design.</li>
+                        <li><strong>What's New Screen</strong> - See feature highlights when the app updates.</li>
+                    </ul>
                 </div>
             </section>
 
-            <section id="applets" class="py-20">
-                <div class="text-center mb-16">
-                    <h2 class="font-mono-plex text-3xl font-bold text-gray-900">The Applet Collection</h2>
-                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">Explore the full collection of utilities available in Mono. Click any item to learn more about its function.</p>
-                </div>
-                <div class="grid lg:grid-cols-3 gap-8">
-                    <div id="applet-cards" class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        </div>
-                    <div id="applet-details-container" class="hidden lg:block lg:col-span-1">
-                        <div class="e-ink-card sticky top-24 rounded-xl min-h-[350px]">
-                            <div id="applet-details-content">
-                                </div>
-                        </div>
+            <section id="design" class="container">
+                <h3>// DESIGN PHILOSOPHY</h3>
+                <div class="design-grid">
+                    <div class="nes-container design-card">
+                        <h4>Minimalist</h4>
+                        <p>Monospaced UI with a pure black-and-white palette.</p>
+                    </div>
+                    <div class="nes-container design-card">
+                        <h4>Low-Stimulation</h4>
+                        <p>Little to no motion, color, or haptics.</p>
+                    </div>
+                    <div class="nes-container design-card">
+                        <h4>Modular</h4>
+                        <p>Every feature lives in its own Swift Package.</p>
+                    </div>
+                    <div class="nes-container design-card">
+                        <h4>E-Ink Inspired</h4>
+                        <p>High-contrast layouts that reduce visual noise.</p>
                     </div>
                 </div>
             </section>
-            
-            <section id="roadmap" class="py-20">
-                <div class="text-center mb-16">
-                    <h2 class="font-mono-plex text-3xl font-bold text-gray-900">Public Roadmap</h2>
-                    <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">Our journey is just beginning. Here’s a look at what’s next for Mono.</p>
+
+            <section id="applets" class="container">
+                <h3>// APPLET COLLECTION</h3>
+                <p style="text-align: center; font-size: 9px; margin-bottom: 24px;">Click any applet to learn more</p>
+                <div class="applets-grid" id="applet-cards"></div>
+            </section>
+
+            <section id="roadmap" class="container">
+                <h3>// PUBLIC ROADMAP</h3>
+
+                <div class="nes-container roadmap-item">
+                    <h4>Phase 1: MVP Launch (v1.0)</h4>
+                    <p>Core suite of single-purpose applets with minimalist design.</p>
+                    <p class="price">Launch Price: $1.00 USD</p>
                 </div>
-                <div class="max-w-4xl mx-auto space-y-12">
-                    <div class="p-8 rounded-lg bg-white border">
-                        <h3 class="font-mono-plex font-semibold text-2xl mb-4">Phase 1: MVP Launch (Version 1.0)</h3>
-                        <p class="text-gray-600 mb-6">Our initial release focuses on a core suite of single-purpose applets, emphasizing stability and our minimalist design philosophy. At launch, applets run one at a time to maintain a focused workflow.</p>
-                        <p class="text-gray-800 font-semibold">Launch Price: <span class="text-[#4A90E2]">$1.00 (USD)</span> for early adopters.</p>
-                    </div>
-                    <div class="p-8 rounded-lg bg-white border">
-                        <h3 class="font-mono-plex font-semibold text-2xl mb-4">Phase 2: The Platform Update (Version 2.0)</h3>
-                        <p class="text-gray-600 mb-6">This major update will evolve Mono into an integrated platform with key architectural enhancements, including an Applet Process Manager for concurrent tasks, a centralized Notification Center, and applet interoperability.</p>
-                        <p class="text-gray-800 font-semibold">Future Pricing: <span class="text-[#4A90E2]">$5.00 (USD)</span>. All v1 purchasers will receive a free upgrade.</p>
-                    </div>
-                    <div class="p-8 rounded-lg bg-white border">
-                        <h3 class="font-mono-plex font-semibold text-2xl mb-4">Phase 3: Expanding the Ecosystem (Post-V2)</h3>
-                        <p class="text-gray-600">With a robust platform, we will expand our applet library and introduce optional premium features like Cloud Sync, Advanced Weather, a Document Scanner, and a Secure Password Manager.</p>
-                    </div>
-                    <div class="p-8 rounded-lg bg-white border">
-                        <h3 class="font-mono-plex font-semibold text-2xl mb-4">Phase 4: Our Cross-Platform Vision (Future)</h3>
-                        <p class="text-gray-600">We plan to thoughtfully expand Mono to other platforms, including the Web and Android, and to further enhance our native macOS application to make our focused utility suite accessible everywhere.</p>
-                    </div>
+
+                <div class="nes-container roadmap-item">
+                    <h4>Phase 2: Platform Update (v2.0)</h4>
+                    <p>Applet Process Manager, Notification Center, and interoperability.</p>
+                    <p class="price">Future Price: $5.00 USD (free upgrade for v1 users)</p>
+                </div>
+
+                <div class="nes-container roadmap-item">
+                    <h4>Phase 3: Ecosystem Expansion</h4>
+                    <p>Premium features: Cloud Sync, Advanced Weather, Document Scanner.</p>
+                </div>
+
+                <div class="nes-container roadmap-item">
+                    <h4>Phase 4: Cross-Platform</h4>
+                    <p>Expand to Web and Android. Enhanced native macOS app.</p>
                 </div>
             </section>
         </div>
-        
-        <div id="page-privacy" class="page-content py-16">
-            <article class="prose lg:prose-lg mx-auto">
-                <h1>Privacy Policy</h1>
-                <p class="text-sm text-gray-500">Last updated: June 28, 2025</p>
-                <p>Mono stores all user data directly on your device using the file system and Keychain. We do not transmit or store personal data on our servers.</p>
-                <p>No analytics or third-party tracking is used. Everything stays local to your device.</p>
-                <p>If you have any questions about this policy, please contact us at <a href="mailto:mono.tamper346@passmail.net" class="text-[#4A90E2] hover:underline">mono.tamper346@passmail.net</a>.</p>
-            </article>
+
+        <div id="page-privacy" class="page-content">
+            <div class="container">
+                <div class="back-link">
+                    <a href="#" onclick="showPage('home'); return false;" class="btn-primary">Back</a>
+                </div>
+                <div class="nes-container">
+                    <h2>Privacy Policy</h2>
+                    <p><em>Last updated: January 2026</em></p>
+                    <p>Mono stores all user data directly on your device. We do not transmit or store personal data on our servers.</p>
+                    <h4>Location Data (Weather Applet)</h4>
+                    <p>The Weather applet uses precise location to fetch weather from the National Weather Service (api.weather.gov). Coordinates are sent directly to NWS and not stored elsewhere.</p>
+                    <h4>Analytics</h4>
+                    <p>No analytics or third-party tracking. Everything stays local.</p>
+                    <p>Questions? <a href="mailto:mono.tamper346@passmail.net">mono.tamper346@passmail.net</a></p>
+                </div>
+            </div>
         </div>
 
-        <div id="page-terms" class="page-content py-16">
-            <article class="prose lg:prose-lg mx-auto">
-                <h1>Terms of Service for Mono</h1>
-                <p class="text-sm text-gray-500">Last Updated: June 28, 2025</p>
-                
-                <p>Welcome to Mono! I'm excited to have you here. My goal is to provide a useful and enjoyable app. Before you start, please read over these rules. They exist to protect both you as a user and me as the creator.</p>
-                <p>By using Mono (the "Service"), you are agreeing to these terms.</p>
-                
-                <h3>1. The Basics</h3>
-                <ul>
-                    <li><strong>Who I Am:</strong> The Service is provided by me, Zach Eriksen, an independent developer.</li>
-                    <li><strong>What I Ask:</strong> Please use the app responsibly and legally. Don't use it to do anything harmful, illegal, or to infringe on the rights of others.</li>
-                </ul>
-
-                <h3>2. My Intellectual Property (The App Belongs to Me)</h3>
-                <p>This is important. The Service, including the name Mono, its code, design, features, and original content, is my exclusive property. I've put a lot of work into it. You are welcome to use the app as intended, but you may not copy, modify, distribute, sell, or lease any part of my Service or its software.</p>
-
-                <h3>3. Ending Our Relationship (Termination)</h3>
-                <p>I reserve the right to suspend or terminate your access to the Service at any time, without notice, if you breach these Terms or use the Service in a way that I determine is harmful.</p>
-                
-                <h3>4. Warranty Disclaimer (The "As Is" Clause)</h3>
-                <p>As a solo developer, I cannot guarantee that the Service will always be perfect. Therefore, the Service is provided <strong>"AS IS"</strong> and <strong>"AS AVAILABLE,"</strong> without any warranties of any kind.</p>
-                <p>This means I do not promise that the Service will:</p>
-                <ul>
-                    <li>Always be available or uninterrupted.</li>
-                    <li>Be completely secure or free of bugs and errors.</li>
-                    <li>Meet all of your specific needs.</li>
-                </ul>
-                <p>You use the Service at your own risk.</p>
-
-                <h3>5. Limitation of Liability (Very Important)</h3>
-                <p>To the maximum extent permitted by law, I, Zach Eriksen, will not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of data, use, or profits, whether incurred directly or indirectly, that result from:</p>
-                <ul>
-                    <li>Your use of or inability to use the Service.</li>
-                    <li>Any bugs, viruses, or errors in the Service.</li>
-                    <li>Any personal injury or property damage resulting from your use of the Service.</li>
-                </ul>
-                <p>In simple terms: if something goes wrong, you agree that I am not responsible for damages.</p>
-
-                <h3>6. Governing Law</h3>
-                <p>Any disputes related to these Terms or the Service will be governed by the laws of Colorado in the United States, without regard to its conflict of law rules.</p>
-
-                <h3>7. Changes to These Terms</h3>
-                <p>I may update these terms from time to time. If I make a change that I believe is significant, I will do my best to let you know. By continuing to use the Service after changes are made, you agree to the new terms.</p>
-
-                <p class="mt-8">Thanks for reading, and I hope you enjoy using Mono!</p>
-                <p>Zach Eriksen<br><a href="mailto:mono.tamper346@passmail.net" class="text-[#4A90E2] hover:underline">mono.tamper346@passmail.net</a></p>
-            </article>
+        <div id="page-terms" class="page-content">
+            <div class="container">
+                <div class="back-link">
+                    <a href="#" onclick="showPage('home'); return false;" class="btn-primary">Back</a>
+                </div>
+                <div class="nes-container">
+                    <h2>Terms of Service</h2>
+                    <p><em>Last Updated: January 2026</em></p>
+                    <p>By using Mono, you agree to these terms.</p>
+                    <h4>1. The Basics</h4>
+                    <p>Provided by Zach Eriksen. Use responsibly and legally.</p>
+                    <h4>2. Intellectual Property</h4>
+                    <p>Mono is the exclusive property of Zach Eriksen.</p>
+                    <h4>3. Warranty Disclaimer</h4>
+                    <p>Provided "AS IS" without warranties.</p>
+                    <h4>4. Limitation of Liability</h4>
+                    <p>Not liable for indirect or consequential damages.</p>
+                    <h4>5. Governing Law</h4>
+                    <p>Colorado, United States.</p>
+                    <p style="margin-top: 24px;">Thanks for using Mono!<br><a href="mailto:mono.tamper346@passmail.net">mono.tamper346@passmail.net</a></p>
+                </div>
+            </div>
         </div>
     </main>
 
-    <footer id="contact" class="border-t border-gray-200/80 mt-20 bg-white">
-        <div class="container mx-auto px-4 py-16 text-center">
-             <h3 class="font-mono-plex text-2xl font-bold text-gray-900">Get in Touch</h3>
-             <p class="mt-4 max-w-xl mx-auto text-gray-600">Mono is crafted by <a href="https://github.com/0xLeif" target="_blank" class="text-[#4A90E2] hover:underline">@0xLeif (Zach Eriksen)</a>. For contracting, collaboration, or general questions, please reach out.</p>
-             <div class="mt-8">
-                 <a href="mailto:mono.tamper346@passmail.net" class="bg-gray-900 text-white font-mono-plex font-medium text-lg px-8 py-3 rounded-lg transition-colors duration-300 hover:bg-[#4A90E2]">
-                     Contact Author
-                 </a>
-             </div>
-             <div class="mt-16 text-sm text-gray-500 space-x-6">
-                 <a href="#privacy" id="privacy-link" class="hover:text-[#4A90E2] cursor-pointer">Privacy Policy</a>
-                 <a href="#terms" id="terms-link" class="hover:text-[#4A90E2] cursor-pointer">Terms of Service</a>
-             </div>
-             <p class="mt-8 text-xs text-gray-400">Copyright © 2025 Mono. All rights reserved.</p>
+    <footer id="contact">
+        <div class="container">
+            <h3>Get in Touch</h3>
+            <p>Mono is crafted by <a href="https://github.com/0xLeif" target="_blank">@0xLeif</a>. For questions or collaboration, reach out.</p>
+            <a href="mailto:mono.tamper346@passmail.net" class="btn-primary">Contact Author</a>
+            <div class="links">
+                <a href="#" onclick="showPage('privacy'); return false;">Privacy Policy</a>
+                <a href="#" onclick="showPage('terms'); return false;">Terms of Service</a>
+            </div>
+            <p class="copyright">Copyright 2025-2026 Mono. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        
-        const appletsData = [
-            { id: 'apps', name: 'Apps', description: 'Launch installed apps.', icon: '🚀', use_case: 'Quickly access your most-used apps without navigating a cluttered home screen.' },
-            { id: 'audioPlayer', name: 'Audio Player', description: 'Play remote audio.', icon: '🎧', use_case: 'Listen to podcasts or music streams without a complex media player.' },
-            { id: 'battery', name: 'Battery', description: 'View current battery status.', icon: '🔋', use_case: 'Check your device power level at a glance.' },
-            { id: 'blackjack', name: 'Blackjack', description: 'Minimal card game.', icon: '🃏', use_case: 'A simple game for a quick mental break without distractions.' },
-            { id: 'breathe', name: 'Breathe', description: 'Guided breathing.', icon: '🧘', use_case: 'Take a moment to reset and refocus during a busy day.' },
-            { id: 'calculator', name: 'Calculator', description: 'Advanced calculations.', icon: '🧮', use_case: 'For when you need more than basic arithmetic, like scientific or programming calculations.' },
-            { id: 'calendar', name: 'Calendar', description: 'Calendar / Agenda.', icon: '🗓️', use_case: 'Quickly check your schedule for the day or week.' },
-            { id: 'checklist', name: 'Checklist', description: 'Minimal to-dos.', icon: '✅', use_case: 'Jot down and manage daily tasks without a complex project manager.' },
-            { id: 'clock', name: 'Clock', description: 'World time / alarms.', icon: '⏰', use_case: 'Coordinate with colleagues or family in other countries.' },
-            { id: 'coin.flip', name: 'Coin Flip', description: 'Lightweight randomness.', icon: '🪙', use_case: 'Make a quick, unbiased decision.' },
-            { id: 'dictionary', name: 'Dictionary', description: 'Word definitions.', icon: '📖', use_case: 'Quickly find the meaning of a word while reading or writing.' },
-            { id: 'directions', name: 'Directions', description: 'Quick map routing.', icon: '🗺️', use_case: 'Find directions without the distractions of a full-featured map app.' },
-            { id: 'flashlight', name: 'Flashlight', description: 'LED flashlight.', icon: '🔦', use_case: 'A handy, powerful light source for finding things in the dark.' },
-            { id: 'focus.mode', name: 'Focus Mode', description: 'Do-not-disturb timer.', icon: '⏳', use_case: 'Block out distractions and work in timed intervals (Pomodoro technique).' },
-            { id: 'habit.tracker', name: 'Habit Tracker', description: 'Daily checkmarks.', icon: '🔃', use_case: 'Build consistency with a simple, satisfying daily checklist.' },
-            { id: 'journal', name: 'Journal', description: 'Record daily notes.', icon: '📓', use_case: 'Capture your thoughts privately with a simple, text-focused interface.' },
-            { id: 'notifications', name: 'Notifications', description: 'View notifications and activity logs.', icon: '🔔', use_case: 'Stay informed with app notifications and view activity logs in a clean interface.' },
-            { id: 'map.pinner', name: 'Map Pinner', description: 'Save simple locations.', icon: '📍', use_case: 'Remember your favorite spots or important locations.' },
-            { id: 'notes', name: 'Notes', description: 'Plain text notes.', icon: '🗒️', use_case: 'For capturing quick thoughts and ideas without any formatting overhead.' },
-            { id: 'qr.scanner', name: 'QR Scanner', description: 'Scan QR codes.', icon: '📷', use_case: 'Quickly open links or get information from QR codes.' },
-            { id: 'quotes', name: 'Quotes', description: 'Daily inspiration.', icon: '💬', use_case: 'Start your day with a moment of inspiration.' },
-            { id: 'rss.reader', name: 'RSS Reader', description: 'Follow feeds.', icon: '📰', use_case: 'Stay updated with your favorite sites in a clean, text-only format.' },
-            { id: 'settings', name: 'Settings', description: 'App preferences.', icon: '⚙️', use_case: 'Customize Mono to fit your visual preferences and needs.' },
-            { id: 'storage', name: 'Storage', description: 'Disk space viewer.', icon: '💾', use_case: 'Check device storage at a glance.' },
-            { id: 'stopwatch', name: 'Stopwatch', description: 'Track elapsed time with multiple stopwatches.', icon: '⏱️', use_case: 'Measure the duration of tasks, events, or laps with precision.' },
-            { id: 'timer', name: 'Timer', description: 'Manage multiple countdown timers.', icon: '⏱️', use_case: 'Set countdowns for cooking, workouts, or any timed activity.' },
-            { id: 'tic.tac.toe', name: 'Tic Tac Toe', description: 'Simple grid game.', icon: '👾', use_case: 'Play a quick, classic game against a friend or the app.' },
-            { id: 'vault', name: 'Vault', description: 'Secure notes w/ Face ID.', icon: '🔒', use_case: 'Keep sensitive information like passwords or private keys secure.' },
-            { id: 'weather', name: 'Weather', description: 'Current conditions.', icon: '☀️', use_case: 'Check the weather without opening a complex, ad-filled app.' },
-            { id: 'wiki', name: 'Wiki', description: 'Lightweight Wikipedia viewer.', icon: '🌐', use_case: 'Read and research topics without visual clutter.' }
-        ];
-        
-        const pages = document.querySelectorAll('.page-content');
-        const mainNav = document.getElementById('main-nav');
-        const allNavLinks = document.querySelectorAll('#main-nav a, #logo-link, #privacy-link, #terms-link');
-        
-        function switchPage(pageId) {
-            window.scrollTo(0, 0);
-            pages.forEach(page => {
-                page.classList.toggle('active', page.id === `page-${pageId}`);
-            });
-            mainNav.style.display = (pageId === 'home') ? 'flex' : 'none';
-        }
+    const appletsData = [
+        { id: 'weather', name: 'Weather', description: 'Current conditions', icon: '☀️', detail: 'Real-time weather powered by the National Weather Service. View temperature, "feels like," humidity, wind speed, barometric pressure, and UV index. Tap location to toggle privacy. US only for now.', featured: true },
+        { id: 'rss', name: 'RSS Reader', description: 'Follow feeds', icon: '📰', detail: 'Stay updated with your favorite sites in a clean, text-only format. Feeds auto-fetch on launch, with a dedicated refresh button for manual updates.', featured: true },
+        { id: 'apps', name: 'Apps', description: 'Launch apps', icon: '🚀', detail: 'Quickly access your installed apps without navigating a cluttered home screen. A focused launcher for your most-used tools.' },
+        { id: 'audio', name: 'Audio Player', description: 'Play audio', icon: '🎧', detail: 'Listen to podcasts, music streams, or any remote audio URL without a complex media player.' },
+        { id: 'battery', name: 'Battery', description: 'Battery status', icon: '🔋', detail: 'Check your device power level at a glance. Simple, clear battery percentage display.' },
+        { id: 'breathe', name: 'Breathe', description: 'Guided breathing', icon: '🧘', detail: 'Take a moment to reset and refocus with guided breathing exercises. Perfect for quick breaks during a busy day.' },
+        { id: 'calculator', name: 'Calculator', description: 'Calculations', icon: '🧮', detail: 'Advanced calculator for when you need more than basic arithmetic. Supports scientific and programming calculations.' },
+        { id: 'calendar', name: 'Calendar', description: 'Agenda', icon: '🗓️', detail: 'Quickly check your schedule for the day or week. Integrates with your device calendar for a clean agenda view.' },
+        { id: 'checklist', name: 'Checklist', description: 'To-dos', icon: '✅', detail: 'Jot down and manage daily tasks without a complex project manager. Simple checkboxes for getting things done.' },
+        { id: 'clock', name: 'Clock', description: 'World time', icon: '⏰', detail: 'View world time across multiple time zones and set alarms. Great for coordinating with colleagues or family abroad.' },
+        { id: 'coinflip', name: 'Coin Flip', description: 'Randomness', icon: '🪙', detail: 'Make quick, unbiased decisions with a simple coin flip. Lightweight randomness when you need it.' },
+        { id: 'dictionary', name: 'Dictionary', description: 'Definitions', icon: '📖', detail: 'Quickly find the meaning of any word while reading or writing. Clean definitions without ads or clutter.' },
+        { id: 'directions', name: 'Directions', description: 'Map routing', icon: '🗺️', detail: 'Find directions to any destination without the distractions of a full-featured map app. Simple, focused routing.' },
+        { id: 'flashlight', name: 'Flashlight', description: 'LED light', icon: '🔦', detail: 'A handy, powerful LED light source for finding things in the dark. One tap on, one tap off.' },
+        { id: 'focusmode', name: 'Focus Mode', description: 'DND timer', icon: '⏳', detail: 'Block out distractions and work in timed intervals using the Pomodoro technique. Stay focused, take breaks.' },
+        { id: 'habits', name: 'Habit Tracker', description: 'Daily checks', icon: '🔃', detail: 'Build consistency with a simple, satisfying daily checklist. Track your habits and watch your streaks grow.' },
+        { id: 'journal', name: 'Journal', description: 'Daily notes', icon: '📓', detail: 'Capture your thoughts privately with a simple, text-focused interface. Your personal space for daily reflection.' },
+        { id: 'notifications', name: 'Notifications', description: 'Activity logs', icon: '🔔', detail: 'Stay informed with app notifications and view activity logs in a clean, organized interface.' },
+        { id: 'mappinner', name: 'Map Pinner', description: 'Save locations', icon: '📍', detail: 'Remember your favorite spots or important locations. Drop pins and add notes for places that matter.' },
+        { id: 'notes', name: 'Notes', description: 'Plain text', icon: '🗒️', detail: 'Capture quick thoughts and ideas without any formatting overhead. Pure, distraction-free text notes.' },
+        { id: 'qrscanner', name: 'QR Scanner', description: 'Scan QR', icon: '📷', detail: 'Quickly scan QR codes to open links or get information. Fast, focused scanning without extras.' },
+        { id: 'quotes', name: 'Quotes', description: 'Inspiration', icon: '💬', detail: 'Start your day with a moment of inspiration. Curated quotes to motivate and encourage.' },
+        { id: 'settings', name: 'Settings', description: 'Preferences', icon: '⚙️', detail: 'Customize Mono to fit your visual preferences. Adjust fonts, text size, brightness, and accent colors.' },
+        { id: 'storage', name: 'Storage', description: 'Disk space', icon: '💾', detail: 'Check your device storage at a glance. See how much space you have left without digging through settings.' },
+        { id: 'stopwatch', name: 'Stopwatch', description: 'Elapsed time', icon: '⏱️', detail: 'Track elapsed time with precision. Supports multiple stopwatches and lap tracking for any timed activity.' },
+        { id: 'timer', name: 'Timer', description: 'Countdown', icon: '⏱️', detail: 'Set countdown timers for cooking, workouts, or any timed activity. Manage multiple timers at once.' },
+        { id: 'tictactoe', name: 'Tic Tac Toe', description: 'Grid game', icon: '👾', detail: 'Play a quick, classic game of Tic Tac Toe against a friend or challenge the app.' },
+        { id: 'vault', name: 'Vault', description: 'Secure notes', icon: '🔒', detail: 'Keep sensitive information like passwords or private keys secure. Protected with Face ID or passcode.' },
+        { id: 'wiki', name: 'Wiki', description: 'Wikipedia', icon: '🌐', detail: 'Read and research Wikipedia topics without visual clutter. A lightweight, focused reading experience.' }
+    ];
 
-        // --- REWRITTEN --- Applets Section Logic
-        function initApplets() {
-            const cardsContainer = document.getElementById('applet-cards');
-            const desktopDetailsContent = document.getElementById('applet-details-content');
-            let activeCard = null;
+    function showPage(pageId) {
+        document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + pageId).classList.add('active');
+        window.scrollTo(0, 0);
+    }
 
-            // MODIFIED: getDetailsHTML now creates the padding, so it's consistent everywhere.
-            const getDetailsHTML = (applet) => `
-                <div class="p-6">
-                    <div class="flex items-center space-x-4 mb-6">
-                        <div class="w-12 h-12 bg-gray-900 rounded-lg flex items-center justify-center text-white text-2xl font-mono-plex flex-shrink-0">${applet.icon}</div>
-                        <div>
-                            <h3 class="font-mono-plex text-xl font-semibold text-gray-900">${applet.name}</h3>
-                            <p class="text-sm text-gray-500">Utility Applet</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div>
-                            <h4 class="font-semibold text-sm text-gray-500 font-mono-plex uppercase tracking-wider">Description</h4>
-                            <p class="text-gray-700 mt-1">${applet.description}</p>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold text-sm text-gray-500 font-mono-plex uppercase tracking-wider">Use Case</h4>
-                            <p class="text-gray-700 mt-1">${applet.use_case}</p>
-                        </div>
-                    </div>
-                </div>`;
+    let activeTooltip = null;
+    let activeCard = null;
 
-            const updateDesktopDetails = (applet) => {
-                desktopDetailsContent.innerHTML = getDetailsHTML(applet);
+    function closeTooltip() {
+        if (activeTooltip) { activeTooltip.remove(); activeTooltip = null; }
+        if (activeCard) { activeCard.classList.remove('selected'); activeCard = null; }
+    }
+
+    function initApplets() {
+        const container = document.getElementById('applet-cards');
+
+        appletsData.forEach(applet => {
+            const card = document.createElement('div');
+            card.className = 'nes-container applet-card' + (applet.featured ? ' is-primary' : '');
+            card.innerHTML = `
+                <div class="applet-icon">${applet.icon}</div>
+                <h4>${applet.name}</h4>
+                <p>${applet.description}</p>
+            `;
+
+            card.onclick = (e) => {
+                e.stopPropagation();
+                closeTooltip();
+                card.classList.add('selected');
+                activeCard = card;
+
+                const tooltip = document.createElement('div');
+                tooltip.className = 'applet-tooltip active';
+                tooltip.innerHTML = `
+                    <button class="close-btn" onclick="closeTooltip()">X</button>
+                    <h4>${applet.icon} ${applet.name}</h4>
+                    <p>${applet.detail}</p>
+                `;
+
+                const rect = card.getBoundingClientRect();
+                const scrollTop = window.pageYOffset;
+                const scrollLeft = window.pageXOffset;
+
+                tooltip.style.position = 'absolute';
+                tooltip.style.top = (rect.bottom + scrollTop + 8) + 'px';
+                tooltip.style.left = Math.max(16, rect.left + scrollLeft - 60) + 'px';
+
+                document.body.appendChild(tooltip);
+                const tooltipRect = tooltip.getBoundingClientRect();
+                if (tooltipRect.right > window.innerWidth - 16) {
+                    tooltip.style.left = (window.innerWidth - tooltipRect.width - 16) + 'px';
+                }
+
+                activeTooltip = tooltip;
             };
 
-            appletsData.forEach(applet => {
-                const cardWrapper = document.createElement('div');
-                cardWrapper.className = 'e-ink-card rounded-xl overflow-hidden transition-all duration-300';
-                
-                // MODIFIED: Mobile details container no longer needs its own padding div.
-                cardWrapper.innerHTML = `
-                    <div class="card-header p-4 cursor-pointer flex items-center space-x-4">
-                        <div class="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center text-gray-800 text-xl font-mono-plex">${applet.icon}</div>
-                        <h3 class="font-mono-plex font-semibold text-base text-gray-800">${applet.name}</h3>
-                    </div>
-                    <div class="details-content lg:hidden border-t border-gray-100">
-                       ${getDetailsHTML(applet)}
-                    </div>
-                `;
-                cardsContainer.appendChild(cardWrapper);
-
-                const header = cardWrapper.querySelector('.card-header');
-                const details = cardWrapper.querySelector('.details-content');
-
-                header.addEventListener('click', () => {
-                    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-
-                    if (isDesktop) {
-                        updateDesktopDetails(applet);
-                        if (activeCard) activeCard.classList.remove('ring-2', 'ring-[#4A90E2]');
-                        cardWrapper.classList.add('ring-2', 'ring-[#4A90E2]');
-                        activeCard = cardWrapper;
-                    } else {
-                        const isExpanded = details.classList.contains('expanded');
-                        // Close any other open card first
-                        if (activeCard && activeCard !== cardWrapper) {
-                            activeCard.classList.remove('ring-2', 'ring-[#4A90E2]');
-                            activeCard.querySelector('.details-content').classList.remove('expanded');
-                        }
-                        // Toggle the clicked card
-                        if (isExpanded) {
-                            details.classList.remove('expanded');
-                            cardWrapper.classList.remove('ring-2', 'ring-[#4A90E2]');
-                            activeCard = null;
-                        } else {
-                            details.classList.add('expanded');
-                            cardWrapper.classList.add('ring-2', 'ring-[#4A90E2]');
-                            activeCard = cardWrapper;
-                        }
-                    }
-                });
-            });
-
-            function setInitialState() {
-                const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-                
-                // Clear all active states first
-                document.querySelectorAll('#applet-cards .details-content.expanded').forEach(el => el.classList.remove('expanded'));
-                document.querySelectorAll('#applet-cards .e-ink-card.ring-2').forEach(el => el.classList.remove('ring-2'));
-                activeCard = null;
-
-                if (isDesktop && appletsData.length > 0) {
-                    updateDesktopDetails(appletsData[0]);
-                    const firstCard = cardsContainer.children[0];
-                    if (firstCard) {
-                        firstCard.classList.add('ring-2', 'ring-[#4A90E2]');
-                        activeCard = firstCard;
-                    }
-                } else {
-                    // Clear desktop panel if not in desktop view
-                    desktopDetailsContent.innerHTML = '';
-                }
-            }
-
-            setInitialState();
-            window.addEventListener('resize', setInitialState);
-        }
-
-        function initScrollspy() {
-            const sections = document.querySelectorAll('#page-home section');
-            const mainNavLinks = document.querySelectorAll('#main-nav a');
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        mainNavLinks.forEach(link => {
-                            link.classList.remove('active-section');
-                            let linkHref = link.getAttribute('href');
-                            if (linkHref && linkHref.substring(1) === entry.target.id) {
-                                link.classList.add('active-section');
-                            }
-                        });
-                    }
-                });
-            }, { rootMargin: "-30% 0px -70% 0px" });
-
-            sections.forEach(section => {
-                observer.observe(section);
-            });
-        }
-        
-        allNavLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = link.getAttribute('href').substring(1);
-                
-                if (targetId === 'privacy' || targetId === 'terms') {
-                    switchPage(targetId);
-                } else {
-                    switchPage('home');
-                    setTimeout(() => {
-                        const targetSection = document.getElementById(targetId);
-                        if (targetSection) {
-                            targetSection.scrollIntoView({ behavior: 'smooth' });
-                        }
-                    }, 100);
-                }
-            });
+            container.appendChild(card);
         });
 
+        document.addEventListener('click', (e) => {
+            if (activeTooltip && !activeTooltip.contains(e.target)) closeTooltip();
+        });
+    }
+
+    function initTintSelector() {
+        const buttons = document.querySelectorAll('.tint-btn');
+        const savedHue = localStorage.getItem('mono-hue');
+
+        if (savedHue) {
+            document.documentElement.style.setProperty('--hue', savedHue);
+            buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.hue === savedHue));
+        }
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const hue = btn.dataset.hue;
+                document.documentElement.style.setProperty('--hue', hue);
+                localStorage.setItem('mono-hue', hue);
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
         initApplets();
-        initScrollspy();
+        initTintSelector();
     });
     </script>
 </body>

@@ -701,12 +701,21 @@
         // Scroll spy
         window.addEventListener('scroll', () => {
             let current = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop - 150;
-                if (window.pageYOffset >= sectionTop) {
-                    current = section.getAttribute('id');
-                }
-            });
+            const scrollPos = window.pageYOffset;
+            const windowHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+
+            // If near bottom, activate last section
+            if (scrollPos + windowHeight >= docHeight - 100) {
+                current = 'roadmap';
+            } else {
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 150;
+                    if (scrollPos >= sectionTop) {
+                        current = section.getAttribute('id');
+                    }
+                });
+            }
 
             navLinks.forEach(link => {
                 link.classList.remove('active');
